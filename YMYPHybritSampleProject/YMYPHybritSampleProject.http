@@ -1,0 +1,6 @@
+@YMYPHybritSampleProject_HostAddress = http://localhost:5171
+
+GET {{YMYPHybritSampleProject_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
