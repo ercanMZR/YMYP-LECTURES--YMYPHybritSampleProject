@@ -58,7 +58,7 @@ namespace YMYPHybritSampleProject.Model.Services
 
         }
 
-        public ProductDto AddProduct(AddProductDto addProductDto)
+        public ProductDto AddProduct(AddProductRequest addProductDto)
         {
             var product = new Product
             {
@@ -77,7 +77,7 @@ namespace YMYPHybritSampleProject.Model.Services
         }
 
 
-        public void UpdateProduct(UpdateProductDto updateProductDto)// Geriye bir şey dönmemize gerek yok.Elimizde zaten data var.Buy yüzden void.//
+        public void UpdateProduct(UpdateProductRequest updateProductDto)// Geriye bir şey dönmemize gerek yok.Elimizde zaten data var.Buy yüzden void.//
 
         {
             var anyProduct = productRepository.GetProduct(updateProductDto.Id);

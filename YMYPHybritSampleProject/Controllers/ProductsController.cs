@@ -9,26 +9,28 @@ namespace YMYPHybritSampleProject.Controllers
     [ApiController]
     public class ProductsController : ControllerBase
     {
-        private ProductService ProductService;
+        private readonly ProductService _productService = new();
 
-        public ProductsController()
-        {
-            ProductService = new ProductService();
-        }
+        /* public ProductsController()
+         {
+             ProductService = new ProductService();
+         }
+        */
 
         [HttpGet]
-        public IActionResult GetProducts()
-        {
-            return Ok(ProductService.GetProducts());
-        }
+        public IActionResult GetProducts() => Ok(_productService.GetProducts());
+   
+           // return Ok(ProductService.GetProducts());
 
 
-        [HttpGet("{productId}")]
+        [HttpGet("{productId:int}")]
         public IActionResult GetProduct(int productId)
         {
-            return Ok(ProductService.GetProductById(productId));
+            return Ok(_productService.GetProductById(productId));
         }
 
+
+       
         //[HttpGet("Size/{pageSize}/Count/{pageCount}")]
         //public IActionResult GetPagedProduct(int pageSize, int pageCount)
         //{
@@ -43,41 +45,41 @@ namespace YMYPHybritSampleProject.Controllers
         }
 
         [HttpPost]
-        public IActionResult AddProduct(AddProductDto request) 
+        public IActionResult AddProduct(AddProductRequest request) 
         {
-            var product=ProductService.AddProduct(request);
+            var product=_productService.AddProduct(request);
             return Created($"api/products/{product.Id}", product);
         }
 
         [HttpPut]
-        public IActionResult UpdateProduct(UpdateProductDto request)
+        public IActionResult UpdateProduct(UpdateProductRequest request)
         {
-            ProductService.UpdateProduct(request);
+            _productService.UpdateProduct(request);
 
             return NoContent();
         }
 
 
 
-        [HttpPatch("stock/{stock}")]
+        [HttpPatch("stock/{stock:int}")]
         public IActionResult UpdateProductStock(int stock)
         {
             return NoContent();
         }
 
 
-        [HttpPatch("price/{price}")] 
+        [HttpPatch("price/{price:int}")] 
         public IActionResult UpdateProductPrice(int price)
         {
             return NoContent();
         }
 
-        [HttpDelete]
+        [HttpDelete("{productId:int}")]
 
         public IActionResult DeleteProduct(int productid)
         {
 
-            ProductService.DeleteProduct(productid);
+            _productService.DeleteProduct(productid);
 
             return NoContent();
         }
