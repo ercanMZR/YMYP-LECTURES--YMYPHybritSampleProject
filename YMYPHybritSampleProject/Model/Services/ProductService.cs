@@ -1,4 +1,5 @@
-﻿using System.Xml.Linq;
+﻿using System.Net;
+using System.Xml.Linq;
 using YMYPHybritSampleProject.Model.Repositories;
 using YMYPHybritSampleProject.Model.Repositories.Entities;
 using YMYPHybritSampleProject.Model.Services.Dto;
@@ -15,7 +16,7 @@ namespace YMYPHybritSampleProject.Model.Services
             productRepository = new ProductRepository();
         }
 
-        public List<ProductDto> GetProducts()
+        public ServiceResult<List<ProductDto>> GetProducts()
         {
             var products = productRepository.GetProducts();
 
@@ -34,32 +35,42 @@ namespace YMYPHybritSampleProject.Model.Services
                 productsWithTax.Add(productDto);
             }
 
-            return productsWithTax;
+            return ServiceResult<List<ProductDto>>.Success(productsWithTax, HttpStatusCode.OK);
 
         }
 
-        public ProductDto GetProductById(int productid) 
+        public ServiceResult<ProductDto> GetProductById(int productid) 
         {
             var product = productRepository.GetProduct(productid);
             if (product is null)
             {
-                // return null; mümkğn oldupunca null dönmicez.
+        // return null; mümkğn oldupunca null dönmicez.
 
-                throw new Exception("Product  not found");
-            }
+        return ServiceResult<ProductDto>.Failure("Ürün bulunamadı", HttpStatusCode.NotFound);
+    }
 
-            return new ProductDto
-            {
+    var productDto = new ProductDto
+    {
                 Id = product.Id,
                 Name = product.Name,
                 Price = CalculateTax(product.Price, TaxRate),
                 Stock = product.Stock,
             };
 
-        }
+    return ServiceResult<ProductDto>.Success(productDto, HttpStatusCode.OK);
 
-        public ProductDto AddProduct(AddProductRequest addProductDto)
-        {
+}
+
+public ServiceResult<ProductDto> AddProduct(AddProductRequest addProductDto)
+{
+            var productName=addProductDto.Name;
+
+            var hasProduct = productRepository.Any(p => p.Name == productName);
+
+            if (hasProduct)
+            {
+                return ServiceResult<ProductDto>.Failure("Kaydetmeye çalıştığınız ürün ismi veritabanında bulunmamaktadır.", HttpStatusCode.BadRequest);
+            }
             var product = new Product
             {
                 Id = GenerateId(),
@@ -73,18 +84,21 @@ namespace YMYPHybritSampleProject.Model.Services
 
             product=productRepository.AddProduct(product);
 
-            return new ProductDto { Id = product.Id, Name = product.Name, Price = CalculateTax(product.Price, TaxRate), Stock = product.Stock, };
+            var newProductDto=new ProductDto
+            { Id = product.Id, Name = product.Name, Price = CalculateTax(product.Price, TaxRate), Stock = product.Stock, };
+
+            return ServiceResult<ProductDto>.Success(newProductDto, HttpStatusCode.Created);
         }
 
 
-        public void UpdateProduct(UpdateProductRequest updateProductDto)// Geriye bir şey dönmemize gerek yok.Elimizde zaten data var.Buy yüzden void.//
+        public ServiceResult UpdateProduct(UpdateProductRequest updateProductDto)// Geriye bir şey dönmemize gerek yok.Elimizde zaten data var.Buy yüzden void.//
 
         {
             var anyProduct = productRepository.GetProduct(updateProductDto.Id);
 
             if(anyProduct != null)
             {
-                throw new Exception("Product not found");
+                return ServiceResult.Failure("Güncellenecek ürün bulunamadı",HttpStatusCode.NotFound);
             }
 
             anyProduct.Name= updateProductDto.Name;
@@ -92,19 +106,23 @@ namespace YMYPHybritSampleProject.Model.Services
 
             productRepository.UpdateProduct(anyProduct);
 
+            return ServiceResult.Success(HttpStatusCode.NoContent);
+
         }
 
 
-        public void DeleteProduct(int productid) 
+        public ServiceResult DeleteProduct(int productid) 
         {
         var anyProduct = productRepository.GetProduct(productid);
 
             if ( anyProduct is null)
             {
-                throw new Exception("Product not found");
+                return ServiceResult.Failure("Silinecek ürün bulunamadı.",HttpStatusCode.NotFound);
             }
 
             productRepository.DeleteProduct(productid);
+
+            return ServiceResult.Success(HttpStatusCode.NoContent);
         }
 
         public static decimal CalculateTax(decimal price, decimal taxRate)

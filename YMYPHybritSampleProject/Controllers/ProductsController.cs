@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 using YMYPHybritSampleProject.Model.Services;
 using YMYPHybritSampleProject.Model.Services.Dto;
 
@@ -7,7 +9,7 @@ namespace YMYPHybritSampleProject.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ProductsController : ControllerBase
+    public class ProductsController : CustomControllerBase
     {
         private readonly ProductService _productService = new();
 
@@ -18,15 +20,35 @@ namespace YMYPHybritSampleProject.Controllers
         */
 
         [HttpGet]
-        public IActionResult GetProducts() => Ok(_productService.GetProducts());
-   
+       public IActionResult GetProducts()
+        {
+            var result = _productService.GetProducts();
+
+            return new ObjectResult(result)
+            {
+                StatusCode = (int)result.Status
+            };
+        }
            // return Ok(ProductService.GetProducts());
 
 
         [HttpGet("{productId:int}")]
         public IActionResult GetProduct(int productId)
         {
-            return Ok(_productService.GetProductById(productId));
+           var result =_productService.GetProductById(productId);
+
+            if(result.Status== HttpStatusCode.NoContent)
+            {
+                return new ObjectResult(null)
+                {
+                    StatusCode = (int)result.Status
+                };
+            }
+
+            return new ObjectResult(result)
+            {
+                StatusCode= (int)result.Status
+            };
         }
 
 
@@ -47,16 +69,22 @@ namespace YMYPHybritSampleProject.Controllers
         [HttpPost]
         public IActionResult AddProduct(AddProductRequest request) 
         {
-            var product=_productService.AddProduct(request);
-            return Created($"api/products/{product.Id}", product);
+            var result=_productService.AddProduct(request);
+            return new ObjectResult(result)
+            {
+                StatusCode = (int)result.Status
+            };
         }
 
         [HttpPut]
         public IActionResult UpdateProduct(UpdateProductRequest request)
         {
-            _productService.UpdateProduct(request);
+            var result =_productService.UpdateProduct(request);
 
-            return NoContent();
+            return new ObjectResult(result)
+            {
+                StatusCode = (int)result.Status
+            };
         }
 
 
@@ -79,9 +107,22 @@ namespace YMYPHybritSampleProject.Controllers
         public IActionResult DeleteProduct(int productid)
         {
 
-            _productService.DeleteProduct(productid);
+            var result=_productService.DeleteProduct(productid);
 
-            return NoContent();
+            if (result.Status == HttpStatusCode.NoContent)
+            {
+                return new ObjectResult(null)
+                {
+                    StatusCode = (int)result.Status
+                };
+            }
+
+
+            return new ObjectResult(result)
+            {
+                StatusCode = (int)result.Status
+            };
         }
+
     }
 }

@@ -20,6 +20,11 @@ namespace YMYPHybritSampleProject.Model.Repositories
         }
 
         public List<Product>GetProducts() => Products;
+
+        public bool Any(Func<Product, bool>fun)
+        {
+            return Products.Any(fun);
+        }
         public Product? GetProduct(int id)
         {
             return Products.FirstOrDefault(p=> p.Id == id);
